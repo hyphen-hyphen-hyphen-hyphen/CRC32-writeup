@@ -1,6 +1,6 @@
 # CRC32
 
-A non-reflected CRC32 implementation in verilog. \
+A reflected CRC32 implementation in verilog. \
 This is a relatively simple project, with only 2 inputs (not including clock and reset) and 2 outputs (one of wich being an echo of one of the inputs) \
 
 ## The CRC32 algorithm
@@ -49,7 +49,7 @@ A `reg` is a variable, can hold a value, and is assigned inside an `always` or `
 `default_nettype none // Disables implicit nets
  
 
-module tt_um_crc32 ( // Instanciates the module
+module tt_um_crc32 ( // declares the module
 	input  wire [7:0] ui_in,    // Dedicated inputs
 	output wire [7:0] uo_out,   // Dedicated outputs
 	input  wire [7:0] uio_in,   // IOs: Input path
@@ -217,7 +217,7 @@ This
 ```
 always @(posedge clk) begin
 ```
-again means that the code inside the block runs anytime `clk` is updated. Specifically on the positive edge, so it updates when `clk` goes from `0` to `1`, but not `1` to `0`.
+again means that the code inside the block runs anytime `clk` is on the positive edge, so it updates when `clk` goes from `0` to `1`, but not `1` to `0`.
 
 
 This,
@@ -227,7 +227,7 @@ if (!rst_n)  begin
 end
 ```
 scince reset is active low, means that when reset is active, it initializes crc to the hex value `0xFFFFFFFF`. \
-This is so that the register starts as a clean slate whenever a new checksum is to be calculated.
+This is so that the register starts as a clean slate whenever a new checksum is to be calculated, and not with whatever leftover there is from the previous calculation.
 
 As we saw in the previous `always` block, we set `next_crc = crc;` and update what the *next* clocks register value should be, \
 and in this block `crc` is set to the previous clocks `next_crc` value:
@@ -245,7 +245,7 @@ generate
 endgenerate
 ```
 
-This is a generate for loop. It differs from the always block in the way that, instead of behavioral repetition like in an always block, it "unrolls" the code onto the hardware, meaning it creates 32 copies of the hardware, one for each loop.
+This is a generate for loop. It differs from the always block in the way that, instead of behavioral repetition like in an always block, repetition only uses a wire, no logic required.
 
 All it does is reverse `crc` and put it in `rev`.
 
@@ -270,16 +270,20 @@ The first
 ```
 if (!rst_n)
 ```
-just initializes on reset, nothing too fancy, but the rest is what shifts the register one bit at a time into `sout` for output.
+just initializes on reset, nothing too fancy, but the rest is what counter selects the register one bit at a time into `sout` for output.
 
-The `shifting` variable tells us if we are still shifting out the reg, or if everything has been shifted already. That's why its counting, to know when its shifted out all 32 bits.
+The `shifting` variable tells us if we are still outputing the reg, or if everything has been output already. That's why its counting, to know when its output out all 32 bits.
 ```
 else if (done && shifting) begin   <-- checks if we are actively shifting output out
-	sout <= out[count2];          <-- shifts the current bit into sout
-if (count2 == 31) shifting <= 0;   <-- Sees if all bits are shifted, if so set shifting to 0
+	sout <= out[count2];          <-- selects the current bit into sout
+if (count2 == 31) shifting <= 0;   <-- Sees if all bits are output, if so set shifting to 0
 else count2 <= count2 + 1;        <-- otherwise count up
 end
 ```
+
+### The rest
+
+The rest of the code is trivial, and figuring it out is left as an exercise for the reader
 
 ## Waveforms
 
@@ -313,3 +317,28 @@ After the last bit has been fed, at arrow two, the TB drives `done` high, indica
 At the same time, at arrow three, the programs `uo_out[1]` goes high. This is because that output is simply an echo of the `done` input. \
 Then, at arrow four, the program starts driving the output, the first bit being a zero.
 
+## Pitfalls, snags, and perils
+
+This section is about the trouble faced while developing this.
+
+### Research
+
+Finding out how the CRC32 algorithm works was the first hurdle, as any search along the lines of `CRC32 algorithm` only gave results on checksum calculators and the occasional uninformative wikipedia page.
+
+### Getting the algorithm right
+
+This is a combination of the previous header, and me being bad at verilog, but it took me a really long time to get the CRC algorithm to work in accordance with the standard. This was overcomed with hard work and passion (late nights and coffe)
+Another issue was that I in the beginning had the `done` signal internally driven. This both meant that the inputs had to be of fixed length, and due to many off-by-one errors, that it was reading either one bit to many, or to few, making the output wrong.
+
+### Getting the TB and test.py to work
+
+Scince my program takes the input the input LSB first, inputing correctly requires some weird modulo math that took me a while to figure out. This is also due to my non-existent verilog skills.
+test.py is used by the github action to test the project. Feeding the input in python was a bit easier, but reading it required some weird code.
+
+## Usage
+
+To use it, first drop `rst_n` to 0 and hold for at least 1 clock cycle. Raise `rst_n` to 1 (not on a clock posedge) and start feeding your input LSB first. The input is red on the clk posedge from the very first posedge after `rst_n` is raised to 1, so I adwise you start feeding the bit on the negedge before that. When the entire message is fed, raise `done` high on the clock negedge directly after the clock posedge where the last input bit was red. Start reading the output LSB first from the first clock posedge after the done signal has been red, that would be the secont clock posedge after done was raised high.
+
+### Testing
+
+It can be tested by compiling the `test/tb_standalone.v` and `src/project.v` files, and simulating them with vvp. The simulation should display either `PASS` or `FAIL`, depending on the outcome of the test.
