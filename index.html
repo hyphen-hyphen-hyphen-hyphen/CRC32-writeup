@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc 3.11" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>index</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      white-space: pre-wrap;
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #1a1a1a;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: 1.5em;}
+    div.column{flex: auto;}
+    @media screen {
+    div.columns{gap: min(4vw, 1.5em);}
+    div.column{overflow-x: auto;}
+    }
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+  </style>
+</head>
+<body>
+<h1 id="crc32">CRC32</h1>
+<figure>
+<img src="./images/gds_render.png" alt="gds render" />
+<figcaption aria-hidden="true">gds render</figcaption>
+</figure>
+<p>A reflected CRC32 implementation in verilog.<br />
+This is a relatively simple project, with only 2 inputs (not including
+clock and reset) and 2 outputs (one of wich being an echo of one of the
+inputs).</p>
+<h2 id="the-crc32-algorithm">The CRC32 algorithm</h2>
+<h3 id="what-is-crc32">What is CRC32?</h3>
+<p>CRC stands for cyclic redundancy check, and the 32 means it outputs a
+32 bit checksum.<br />
+It is used in things like ZIP, Ethernet and PNG.</p>
+<h3 id="the-algorithm">The algorithm</h3>
+<p>The CRC algorithm divides the input by a binary number derived from a
+polynomial.<br />
+More specifically the coeficients of the polynomial, so for an example
+CRC4 algorithm, lets take the arbitrary polynomial
+<code>x⁴+x³+x</code>,<br />
+we have the coeficients <code>1x⁴+1x³+0x²+1x¹+0x⁰</code>, giving us the
+number <code>11010</code>.<br />
+</p>
+<p>Now to calculate our checksum of an arbitrary input, say
+<code>1011100</code>, we:</p>
+<pre><code>1011100 0000   &lt;-- we pad the input with the polynomial grade number of zeroes
+11010          &lt;-- xor by the polynomial number
+------------
+01101000000</code></pre>
+<p>next shift over to the next <code>1</code> in the result</p>
+<pre><code>0110100 0000
+ 11010
+-----------   &lt;-- repeat
+0000000 0000</code></pre>
+<p>In this case we got all zeroes, which means the checksum is
+<code>0</code>.</p>
+<h2 id="the-very-basics-of-verilog">The very basics of verilog</h2>
+<h3 id="wires">Wires</h3>
+<p>A <code>wire</code> is what is called a net, it describes a physical
+connection.<br />
+It can not store anything, and must be continuosly assigned to something
+using an <code>assign</code> statement.</p>
+<h3 id="reg">Reg</h3>
+<p>A <code>reg</code> is a variable, can hold a value, and is assigned
+inside an <code>always</code> or <code>initial</code> block.</p>
+<h2 id="short-overview-of-source-code">Short overview of source
+code</h2>
+<pre><code>`default_nettype none // Disables implicit nets
+ 
+
+module tt_um_crc32 ( // declares the module
+    input  wire [7:0] ui_in,    // Dedicated inputs
+    output wire [7:0] uo_out,   // Dedicated outputs
+    input  wire [7:0] uio_in,   // IOs: Input path
+    output wire [7:0] uio_out,  // IOs: Output path
+    output wire [7:0] uio_oe,   // IOs: Enable path (active high: 0=input, 1=output)
+    input  wire       ena,      // always 1 when the design is powered, so you can ignore it
+    input  wire       clk,      // clock
+    input  wire       rst_n     // reset_n - low to reset
+);
+
+    reg [31:0] crc;
+    reg [31:0] next_crc;   // declarations of reg:s and net:s
+    wire done;
+    assign done = ui_in[1];// continuos assignment of wire, done is always equal to whatever ui_in[1] is at that time
+    wire fb;                           // Declaring the feedback bit
+    assign fb = crc[31] ^ ui_in[0];    // Continuosly assigning the feedback bit as the first bit in the register xor:ed against the input.
+    always @(*) begin
+        next_crc = crc;
+        if (!done) begin
+        next_crc = crc &lt;&lt; 1;              // shifting over one bit
+        next_crc[26] = fb ^ next_crc[26]; // actually doing the CRC32
+        next_crc[23] = fb ^ next_crc[23];
+        next_crc[22] = fb ^ next_crc[22];
+        next_crc[16] = fb ^ next_crc[16];
+        next_crc[12] = fb ^ next_crc[12];
+        next_crc[11] = fb ^ next_crc[11];
+        next_crc[10] = fb ^ next_crc[10];
+        next_crc[8 ] = fb ^ next_crc[8 ];
+        next_crc[7 ] = fb ^ next_crc[7 ];
+        next_crc[5 ] = fb ^ next_crc[5 ];
+        next_crc[4 ] = fb ^ next_crc[4 ];
+        next_crc[2 ] = fb ^ next_crc[2 ];
+        next_crc[1 ] = fb ^ next_crc[1 ];
+        next_crc[0 ] = fb ^ next_crc[0 ];
+        end
+
+    end
+    always @(posedge clk) begin
+        if (!rst_n)  begin 
+            crc &lt;= 32&#39;hFFFFFFFF;   // init at reset
+        end
+        else if (!done) crc &lt;= next_crc;
+    end
+    wire [31:0] rev;
+    genvar i;
+    generate 
+        for (i = 0; i &lt; 32; i = i + 1) begin     // Reversing the register at output
+            assign rev[i] = crc[31-i];
+        end
+    endgenerate
+    wire [31:0] out;
+    assign out = ~rev;              // inverting the reversed register at output
+
+
+    reg sout;
+    reg [4:0] count2;
+    reg shifting;
+    always @(posedge clk) begin
+        if (!rst_n) begin
+            sout &lt;= 0;
+            count2 &lt;= 0;      // initing at reset
+            shifting &lt;= 1;
+        end
+        else if (done &amp;&amp; shifting) begin
+            sout &lt;= out[count2];        // shifting the register out, one bit per clock on output
+        if (count2 == 31) shifting &lt;= 0;
+        else count2 &lt;= count2 + 1;      // counting the bits for output
+        end
+    end
+
+    assign uio_oe = 0;  
+    assign uio_out = 0;             // assigning unused IO:s
+    assign uo_out[7:2] = 0;
+    wire _unused = &amp;{ena, ui_in[7:2], uio_in, 1&#39;b0};
+    assign uo_out[0] = sout;
+    assign uo_out[1] = done;    // assigning outputs
+
+
+
+endmodule</code></pre>
+<p>I’ll now go through the code one <code>always</code> block at a
+time</p>
+<h3 id="always-block-one">Always block one</h3>
+<pre><code>always @(*) begin
+    next_crc = crc;
+    if (!done) begin
+    next_crc = crc &lt;&lt; 1;
+    next_crc[26] = fb ^ next_crc[26];
+    next_crc[23] = fb ^ next_crc[23];
+    next_crc[22] = fb ^ next_crc[22];
+    next_crc[16] = fb ^ next_crc[16];
+    next_crc[12] = fb ^ next_crc[12];
+    next_crc[11] = fb ^ next_crc[11];
+    next_crc[10] = fb ^ next_crc[10];
+    next_crc[8 ] = fb ^ next_crc[8 ];
+    next_crc[7 ] = fb ^ next_crc[7 ];
+    next_crc[5 ] = fb ^ next_crc[5 ];
+    next_crc[4 ] = fb ^ next_crc[4 ];
+    next_crc[2 ] = fb ^ next_crc[2 ];
+    next_crc[1 ] = fb ^ next_crc[1 ];
+    next_crc[0 ] = fb ^ next_crc[0 ];
+    end
+end</code></pre>
+<p>The <code>always @(*)</code> means that the code inside the block
+runs anytime anything on the right hand side of an assignment inside the
+block is updated.<br />
+For example, this is the first line of the block:</p>
+<pre><code>Left hand side
+   ↓
+next_crc = crc;
+            ↑
+     Right hand side</code></pre>
+<p>So anytime the right hand side (crc) is updated, all of the code in
+the block is run.</p>
+<p>This</p>
+<pre><code>if (!done) begin</code></pre>
+<p>means that the code inside the if statement (until the next
+<code>end</code>) will run if <code>done</code> is <code>0</code>.<br />
+This is because when all the input has been fed, and done goes high, we
+want to output the register without updating it further.</p>
+<p>This line</p>
+<pre><code>next_crc = crc &lt;&lt; 1;</code></pre>
+<p>shifts the register one bit to the left.</p>
+<p>These next couple of lines</p>
+<pre><code>next_crc[26] = fb ^ next_crc[26];
+next_crc[23] = fb ^ next_crc[23];
+next_crc[22] = fb ^ next_crc[22];
+next_crc[16] = fb ^ next_crc[16];
+next_crc[12] = fb ^ next_crc[12];
+next_crc[11] = fb ^ next_crc[11];
+next_crc[10] = fb ^ next_crc[10];
+next_crc[8 ] = fb ^ next_crc[8 ];
+next_crc[7 ] = fb ^ next_crc[7 ];
+next_crc[5 ] = fb ^ next_crc[5 ];
+next_crc[4 ] = fb ^ next_crc[4 ];
+next_crc[2 ] = fb ^ next_crc[2 ];
+next_crc[1 ] = fb ^ next_crc[1 ];
+next_crc[0 ] = fb ^ next_crc[0 ];</code></pre>
+<p>Implements the xor taps with the feedback bit according to the
+polynomial
+<code>x³²+x²⁶+x²³+x²²+x¹⁶+x¹²+x¹¹+x¹⁰+x⁸+x⁷+x⁵+x⁴+x²+x¹+x⁰</code>. Now
+notice how the polynomial has an <code>x³²</code> term, but the code
+dosent. This is because that term is already shifted out of the
+register. Doing these taps is mathematically equivalent to the binary
+division done in the example.</p>
+<h3 id="always-block-2">Always block 2</h3>
+<pre><code>always @(posedge clk) begin
+    if (!rst_n)  begin 
+        crc &lt;= 32&#39;hFFFFFFFF;
+    end
+    else if (!done) crc &lt;= next_crc;    
+end</code></pre>
+<p>This</p>
+<pre><code>always @(posedge clk) begin</code></pre>
+<p>again means that the code inside the block runs anytime
+<code>clk</code> is on the positive edge, so it updates when
+<code>clk</code> goes from <code>0</code> to <code>1</code>, but not
+<code>1</code> to <code>0</code>.</p>
+<p>This,</p>
+<pre><code>if (!rst_n)  begin 
+    crc &lt;= 32&#39;hFFFFFFFF;
+end</code></pre>
+<p>scince reset is active low, means that when reset is active, it
+initializes crc to the hex value <code>0xFFFFFFFF</code>.<br />
+This is so that the register starts as a clean slate whenever a new
+checksum is to be calculated, and not with whatever leftover there is
+from the previous calculation. The reason it’s initiated to all ones and
+not zeroes is because if the register is all zeroes, an input with any
+amount of zeroes prepended will give the same checksum. So for example,
+<code>11010</code> would give the same checksum as
+<code>000011010</code>.</p>
+<p>As we saw in the previous <code>always</code> block, we set
+<code>next_crc = crc;</code> and update what the <em>next</em> register
+value should be,<br />
+and in this block <code>crc</code> is set to <code>next_crc</code>’s
+value:</p>
+<pre><code>else if (!done) crc &lt;= next_crc;</code></pre>
+<h3 id="generate-block">Generate block</h3>
+<pre><code>generate
+    for (i = 0; i &lt; 32; i = i + 1) begin
+        assign rev[i] = crc[31-i];
+    end
+endgenerate</code></pre>
+<p>This is a generate for loop. It differs from the always block in the
+way that, instead of behavioral repetition like in an always block,
+repetition only uses a wire, no logic required.</p>
+<p>All it does is reverse <code>crc</code> and put it in
+<code>rev</code>.</p>
+<h3 id="third-always-block">Third always block</h3>
+<pre><code>always @(posedge clk) begin
+    if (!rst_n) begin
+        sout &lt;= 0;
+        count2 &lt;= 0;
+        shifting &lt;= 1;
+    end
+    else if (done &amp;&amp; shifting) begin
+        sout &lt;= out[count2];
+    if (count2 == 31) shifting &lt;= 0;
+    else count2 &lt;= count2 + 1;
+    end
+end</code></pre>
+<p>The first</p>
+<pre><code>if (!rst_n)</code></pre>
+<p>just initializes on reset, nothing too fancy, but the rest is what
+counter selects the register one bit at a time into <code>sout</code>
+for output.</p>
+<p>The <code>shifting</code> variable tells us if we are still outputing
+the reg, or if everything has been output already. That’s why its
+counting, to know when its output out all 32 bits.</p>
+<pre><code>else if (done &amp;&amp; shifting) begin   &lt;-- checks if we are actively shifting output out
+    sout &lt;= out[count2];          &lt;-- selects the current bit into sout
+if (count2 == 31) shifting &lt;= 0;   &lt;-- Sees if all bits are output, if so set shifting to 0
+else count2 &lt;= count2 + 1;        &lt;-- otherwise count up
+end</code></pre>
+<h3 id="the-rest">The rest</h3>
+<p>Here im going to talk about the small code snippets between the
+blocks left unexplained, from top to bottom.</p>
+<pre><code>reg [31:0] crc;
+reg [31:0] next_crc;
+wire done;
+assign done = ui_in[1];
+wire fb;
+assign fb = crc[31] ^ ui_in[0];</code></pre>
+<p>This is from directly above the first always block. All lines
+beginning with either <code>reg</code> or <code>wire</code> are
+declaring either a <code>reg</code> or <code>wire</code>
+respectively.<br />
+Take for example this line:</p>
+<pre><code>reg [31:0] crc;</code></pre>
+<p>is declaring <code>crc</code> as a 32-bit (bit 31 to 0) register of
+flip-flops. Compare that to <code>next_crc</code>, which is declared the
+exact same way, but dosent have flip-flops, and is instead just logic.
+The difference is in where the two are assigned. <code>next_crc</code>
+is assigned in an <code>always @(*)</code> block, while <code>crc</code>
+in an <code>always @(posedge clk)</code>. The difference being that
+<code>crc</code> is assigned in a clocked, non-blocking always block,
+while <code>next_crc</code> is assigned in a blocking combinational
+always block.</p>
+<p>The difference between blocking (<code>=</code>) and non-blocking
+(<code>&lt;=</code>) is that in always blocks with blocking assignments,
+the assignments are assigned in order from top to bottom, but in
+non-blocking assignments, everything is done at the same time, in
+paralell, and reads are done before writes.</p>
+<p>The first <code>assign</code> statement just sets <code>done</code>
+equal to <code>ui_in[1]</code>, which is the done input.<br />
+The second <code>assign</code> statement assigns the feedback bit as the
+first register position xor:ed to the input, which is used for the xor
+taps.</p>
+<p>This line</p>
+<pre><code>genvar i;</code></pre>
+<p>can be found before the generate block. A genvar is a special
+variable used in generate loops to control how instances are created
+during elaboration.</p>
+<pre><code>assign out = ~rev;</code></pre>
+<p>This line is located below the generate block, and it bit inverses
+the reversed register and assigns out to it. This is because the
+definition of CRC32 calls for this inversion, and the reversing is the
+“reflected” part of the reflected CRC32.</p>
+<pre><code>assign uio_oe = 0;
+assign uio_out = 0;
+assign uo_out[7:2] = 0;
+wire _unused = &amp;{ena, ui_in[7:2], uio_in, 1&#39;b0};
+assign uo_out[0] = sout;
+assign uo_out[1] = done;</code></pre>
+<p>These lines ties unused outputs to zero, RHS assigns unused inputs so
+the verilog linter dosent complain, and assigns the final used
+outputpins to sout and done.</p>
+<p>Any code left unexplained is trivial, and left as an exercise for the
+reader.</p>
+<h2 id="waveforms">Waveforms</h2>
+<p>Now, lets take a look at some of the computed waveforms</p>
+<figure>
+<img src="./images/wav-1.png" alt="Waveform 1" />
+<figcaption aria-hidden="true">Waveform 1</figcaption>
+</figure>
+<p>This is an image of the waveforms generated by the program plus a
+testbench, viewed in GTKwave. I have included some arrows with numbers
+to make it a bit easier.</p>
+<p>Arrow number one is pointing at the <code>clk</code> signal. This is
+what decides the timing of the chip.<br />
+Arrow number two is pointing at a red box from <code>uo_out[0]</code>.
+<code>uo_out[0]</code> is the output pin (<code>sout</code> in the
+code), and the red box means it is uninitialized. This is because
+<code>sout</code> isn’t initialised until the first clock, and we can se
+that at the first clock, the red box turns into a <code>0</code>.</p>
+<p>Arrow number three is pointint at the posedge of <code>rst_n</code>.
+Scince <code>rst_n</code> is active low, it going high means it turns
+inactive. As soon as reset goes inactive the program starts reading
+input on the next clock edge, and as we can see at arrow four, as soon
+as reset goes inactive, the testbench starts feeding data bits to the
+input.</p>
+<p>Now for the next part of the waveform</p>
+<figure>
+<img src="./images/wav-2.png" alt="Waveform 2" />
+<figcaption aria-hidden="true">Waveform 2</figcaption>
+</figure>
+<p>This is about halfway through the simulation.</p>
+<p>Arrow one is pointing at the clock. As you can see its still going,
+and always will be. Arrow two is pointing at the data pin. It’s
+continuing to feed data for the program to calculate the checksum with.
+At arrow number three you can see that both the output pins and the
+<code>done</code> signal are low, this is because the TB dosent drive
+<code>done</code> high until ii’s fed all the input bits, one of the
+outputs is an echo of done, and the second output is <code>sout</code>
+which holds its reset value until the program starts outputing.</p>
+<figure>
+<img src="./images/wav-3.png" alt="Waveform 3" />
+<figcaption aria-hidden="true">Waveform 3</figcaption>
+</figure>
+<p>Now this one is a little bit more interesting. This is the end of the
+simulation.</p>
+<p>As you can see at arrow one, the TB feeds it’s last input bit, a
+zero.<br />
+After the last bit has been fed, at arrow two, the TB drives
+<code>done</code> high, indicating that all input bits have been
+fed.<br />
+At the same time, at arrow three, the programs <code>uo_out[1]</code>
+goes high. This is because that output is simply an echo of the
+<code>done</code> input.<br />
+Then, at arrow four, the program starts driving the output, the first
+bit being a zero.</p>
+<h2 id="pitfalls-snags-and-perils">Pitfalls, snags, and perils</h2>
+<p>This section is about the trouble faced while developing this.</p>
+<h3 id="research">Research</h3>
+<p>Finding out how the CRC32 algorithm works was the first hurdle, as
+any search along the lines of <code>CRC32 algorithm</code> only gave
+results on checksum calculators and the occasional uninformative
+wikipedia page.</p>
+<h3 id="getting-the-algorithm-right">Getting the algorithm right</h3>
+<p>This is a combination of the previous header, and me being bad at
+verilog, but it took me a really long time to get the CRC algorithm to
+work in accordance with the standard. Most of the problems were with how
+the register was output, but the testbench was also an issue. The TB was
+waiting one clock signal after reset before outputing, meaning it was
+processing an extra zero at the beginning. Another issue was that I in
+the beginning had the <code>done</code> signal internally driven. This
+both meant that the inputs had to be of fixed length, and due to the
+above error, it was both reading an extra zero at the beginning, and
+also not reading the last bit, making the output wrong.</p>
+<h3 id="getting-the-tb-to-work">Getting the TB to work</h3>
+<p>Scince my program takes the input the input LSB first, and due to the
+way verilog stores strings, inputing correctly requires this weird
+modulo math that took me a while to figure out.
+<code>64 - 8*(n/8) + (n%8)</code> is the math, it looks like 8*(n/8) is
+just n, but scince n is an integer, verilog drops the remainder from the
+division. Due to this, 8*(n/8) gets the nearest multiple of eight thats
+smaller than or equal to n. This gets subtracted from 64, and then n
+(mod 8) gets added to that. Now scince the data i was trying to feed was
+“123456789” was 9 bytes, which is 72 bits (9*8), so to look at the last
+bit being fed for example, 64-8*(71/8)+(71%8). Scince 71 isn’t divisible
+by eight, we have to worry about verilogs integer division, so 71/8 is
+about 8.9, drop the remainder to 8, multiply by 8, we get 64. 64-64 is
+0, and 71 modulo 8 is 7, meaning the last bit fed is the bit at zero
+indexed position 7.</p>
+<h2 id="usage">Usage</h2>
+<p>To use it, first drop <code>rst_n</code> to 0 and hold for at least 1
+clock cycle. Raise <code>rst_n</code> to 1 (not on a clock posedge) and
+start feeding your input LSB first. The input is red on the clk posedge
+from the very first posedge after <code>rst_n</code> is raised to 1, so
+I adwise you start feeding the bit on the negedge before that. When the
+entire message is fed, raise <code>done</code> high on the clock negedge
+directly after the clock posedge where the last input bit was red. Start
+reading the output LSB first from the first clock posedge after the done
+signal has been red, that would be the secont clock posedge after done
+was raised high.</p>
+<h3 id="testing">Testing</h3>
+<p>It can be tested by compiling the <code>test/tb_standalone.v</code>
+and <code>src/project.v</code> files, and simulating them with vvp. The
+simulation should display either <code>PASS</code> or <code>FAIL</code>,
+depending on the outcome of the test.</p>
+<h2 id="further-reading">Further reading</h2>
+<p>If you want to learn more about verilog you can check out <a
+href="https://en.wikipedia.org/wiki/Verilog">this</a>, and if you want
+to learn more about cyclic redundancy checks you can read <a
+href="https://en.wikipedia.org/wiki/Cyclic_redundancy_check">this</a>
+and <a
+href="https://en.wikipedia.org/wiki/Computation_of_cyclic_redundancy_checks">this</a>.</p>
+</body>
+</html>
