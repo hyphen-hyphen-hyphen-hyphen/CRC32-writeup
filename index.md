@@ -303,7 +303,7 @@ reg [31:0] crc;
 ```
 is declaring `crc` as a 32-bit (bit 31 to 0) register of flip-flops. Compare that to `next_crc`, which is declared the exact same way, but dosent have flip-flops, and is instead just logic. The difference is in where the two are assigned. `next_crc` is assigned in an `always @(*)` block, while `crc` in an `always @(posedge clk)`. The difference being that `crc` is assigned in a clocked, non-blocking always block, while `next_crc` is assigned in a blocking combinational always block.
 
-The difference between blocking (`=`) and non-blocking (`<=`) is that in always blocks with blocking assignments, the assignments are assigned in order from top to bottom, but in non-blocking assignments, everything is done at the same time, in paralell.
+The difference between blocking (`=`) and non-blocking (`<=`) is that in always blocks with blocking assignments, the assignments are assigned in order from top to bottom, but in non-blocking assignments, everything is done at the same time, in paralell, and reads are done before writes.
 
 The first `assign` statement just sets `done` equal to `ui_in[1]`, which is the done input. \
 The second `assign` statement assigns the feedback bit as the first register position xor:ed to the input, which is used for the xor taps.
